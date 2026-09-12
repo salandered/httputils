@@ -1,3 +1,8 @@
+## fmt
+.PHONY: fmt
+fmt:
+	golangci-lint fmt ./...
+
 ## audit
 .PHONY: audit
 audit:

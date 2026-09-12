@@ -52,8 +52,11 @@ func WriteJSON(ctx context.Context, w http.ResponseWriter, statusCode int, data 
 		slog.ErrorContext(ctx, "failed writing response body", "status", statusCode, "error", err)
 		return
 	}
+
+	// not using rawJSON: marshalled bytes lose their LogValuer (if any).
+	// For example, this prevents a response type from redacting itself.
 	slog.DebugContext(ctx, "response sent",
-		"bytes", len(rawJSON), "payload", truncatedJSON(rawJSON))
+		"bytes", len(rawJSON), "payload", truncatedValue{data})
 }
 
 type errorResponse struct {

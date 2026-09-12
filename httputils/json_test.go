@@ -17,13 +17,6 @@ type payload struct {
 	Name string `json:"name"`
 }
 
-func postJSON(body string) (*http.Request, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-	return req, newRecorder()
-}
-
-func newRecorder() *httptest.ResponseRecorder { return httptest.NewRecorder() }
-
 func TestReadJSONDecodesASingleObject(t *testing.T) {
 	req, w := postJSON(`{"name":"ada"}`)
 

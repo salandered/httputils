@@ -9,9 +9,7 @@ import (
 
 const maxLoggedPayload = 512
 
-// Resolved by the handler, so nothing below is paid for when the record is dropped.
-
-// marshals then truncates
+// marshals then truncates, unless v renders itself
 type truncatedValue struct {
 	v any
 }
@@ -31,21 +29,18 @@ slog.DebugContext(..., truncatedValue{dst})
 		│  ...
 		|
 		└─ Handler.Handle → appendAttr → Value.Resolve()   (handler.go:477)
-				Resolve loops LogValue() => json.Marshal + truncate run HERE
+				Resolve loops LogValue() => the dispatch below runs HERE
 */
 func (t truncatedValue) LogValue() slog.Value {
+	// If value satisfies [slog.LogValuer] it knowns how to render itself
+	if lv, ok := t.v.(slog.LogValuer); ok {
+		return lv.LogValue()
+	}
 	raw, err := json.Marshal(t.v)
 	if err != nil {
 		return slog.StringValue(truncatePayload(fmt.Appendf(nil, "%+v", t.v)))
 	}
 	return slog.StringValue(truncatePayload(raw))
-}
-
-// already-marshalled JSON
-type truncatedJSON []byte
-
-func (t truncatedJSON) LogValue() slog.Value {
-	return slog.StringValue(truncatePayload(t))
 }
 
 func truncatePayload(rawJSON []byte) string {
